@@ -1,0 +1,2 @@
+# weekly70
+rust

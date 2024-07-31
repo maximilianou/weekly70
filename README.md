@@ -1,6 +1,7 @@
 # weekly70
 rust
 
+
 ```rust
 use yew::prelude::*;
 

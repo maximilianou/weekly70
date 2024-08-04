@@ -1,10 +1,6 @@
 # weekly70 - rust - 2024
 
 
-
-
-
-
 ```rust
 use yew::prelude::*;
 

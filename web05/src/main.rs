@@ -22,8 +22,7 @@ fn app() -> Html {
       speaker: "Maximiliano Usich".to_string(),
       url: "img/v03homelab03gitopskubernetes.webp".to_string(),
     },
-  ];
-  
+  ];  
   html! {
     <>
       <h1>{ "Video Tutorial Explorer! " }</h1>
@@ -33,7 +32,6 @@ fn app() -> Html {
      </>
   }
 }
-
 fn main() {
     yew::Renderer::<App>::new().render();
 }

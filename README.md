@@ -2,6 +2,49 @@
 
 -----------
 
+## leptos.dev
+
+-------------
+
+https://book.leptos.dev/getting_started/index.html
+
+```sh
+cargo install trunk
+
+
+#TODO: here
+
+
+cargo init web07_leptos
+
+cd web07_letpos
+
+# install global 
+rustup toolchain install nightly
+rustup default nightly
+
+# install in the project only
+rustup toolchain install nightly
+cd web07_leptos
+rustup override set nightly
+
+# install wasm32 to compile and run webassembly in the browser
+rustup target add wasm32-unknown-unknown
+
+
+
+
+cargo add leptos --features=csr,nigthly
+```
+
+
+
+
+
+
+
+----------------------------------------------
+## Yew
 ```rust
 use yew::prelude::*;
 

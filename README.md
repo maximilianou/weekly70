@@ -71,6 +71,8 @@ cargo generate --git https://github.com/leptos-community/start-csr
 trunk serve --port 3000 --open
 
 ## TODO: here
+https://book.leptos.dev/view/01_basic_component.html
+
 
 ```
 

@@ -11,10 +11,6 @@ https://book.leptos.dev/getting_started/index.html
 ```sh
 cargo install trunk
 
-
-#TODO: here
-
-
 cargo init web07_leptos
 
 cd web07_letpos
@@ -32,9 +28,26 @@ rustup override set nightly
 rustup target add wasm32-unknown-unknown
 
 
-
-
 cargo add leptos --features=csr,nigthly
+
+```
+```html
+<!DOCTYPE html>
+<html>
+    <head><title></title></head>
+    <body></body>
+</html>
+```
+```rust
+use leptos::*;
+fn main() {
+    mount_to_body( || view! { <><p>"Hi, here we are!"</p><ul><li>"Rust"</li><li>"Web"</li></ul></> } )
+}
+```
+```sh
+
+#TODO: here
+
 ```
 
 

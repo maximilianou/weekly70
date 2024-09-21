@@ -46,7 +46,31 @@ fn main() {
 ```
 ```sh
 
-#TODO: here
+
+cargo add console_error_panic_hook
+
+console_error_panic_hook::set_once();
+
+
+https://book.leptos.dev/view/index.html
+
+cargo install trunk
+cargo install cargo-generate
+
+##
+## on debian - to have SSL libraries install librust-openssl-dev
+##
+root@srv04:~# apt install librust-openssl-dev
+
+cargo install cargo-generate
+
+
+
+cargo generate --git https://github.com/leptos-community/start-csr
+
+trunk serve --port 3000 --open
+
+## TODO: here
 
 ```
 

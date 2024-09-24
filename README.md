@@ -28,7 +28,7 @@ rustup override set nightly
 rustup target add wasm32-unknown-unknown
 
 
-cargo add leptos --features=csr,nigthly
+cargo add leptos --features=csr,nightly
 
 ```
 ```html
@@ -70,14 +70,173 @@ cargo generate --git https://github.com/leptos-community/start-csr
 
 trunk serve --port 3000 --open
 
-## TODO: here
-https://book.leptos.dev/view/01_basic_component.html
 
 
 ```
 
+### Rust leptos.dev web components 
 
 
+```sh
+
+https://book.leptos.dev/view/01_basic_component.html
+
+
+```
+```rust
+fn main() {
+    leptos::mount_to_body(|| view! { <App/> })
+}
+#[component]
+fn App() -> impl IntoView {
+    let (count, set_count) = create_signal(0);
+
+    view! {
+        <button
+            on:click=move |_| {
+                // on stable, this is set_count.set(3);
+                set_count(3);
+            }
+        >
+            "Click me: "
+            // on stable, this is move || count.get();
+            {move || count()}
+        </button>
+    }
+}
+
+```
+
+```sh
+cargo init web09_components
+cd web09_components
+cargo add leptos --features=csr,nightly
+
+touch index.html
+```
+
+```html
+<!DOCTYPE html>
+<html>
+    <head><title></title></head>
+    <body></body>
+</html>
+```
+
+```rust
+use leptos::view;
+use leptos::IntoView;
+use leptos::create_signal;
+use leptos::component;
+fn main() {
+    leptos::mount_to_body(|| view! { <App/> })
+}
+#[component]
+fn App() -> impl IntoView {
+    let (count, set_count) = create_signal(0);
+    view! {
+        <button
+            on:click=move |_| {
+                // on stable, this is set_count.set(3);
+                set_count(3);
+            }
+        >
+            "Click me: "
+            // on stable, this is move || count.get();
+            {move || count()}
+        </button>
+    }
+}
+
+```
+
+```sh
+
+https://book.leptos.dev/view/02_dynamic_attributes.html
+
+```
+
+```html
+<!DOCTYPE html>
+<html>
+    <head><title></title>
+        <style>
+            .red {
+                color: red;
+            }
+        </style>
+    </head>
+    <body></body>
+</html>
+
+```
+
+```rust
+use leptos::view;
+use leptos::IntoView;
+use leptos::create_signal;
+use leptos::component;
+use leptos::SignalUpdate;
+fn main() {
+    console_error_panic_hook::set_once();
+    leptos::mount_to_body( || view! { <App />}    );
+}
+#[component]
+fn App() -> impl IntoView {
+  let (count, set_count) = create_signal(0);
+  view! {
+    <button on:click=move |_| { set_count.update( |n| *n += 1); } 
+    class:red=move || count() % 2 == 1
+    >
+      "Click me:" {move || count()}
+    </button>
+  }  
+}
+```
+
+
+
+```rust
+use leptos::view;
+use leptos::IntoView;
+use leptos::create_signal;
+use leptos::component;
+use leptos::SignalUpdate;
+fn main() {
+    console_error_panic_hook::set_once();
+    leptos::mount_to_body( || view! { <App />}    );
+}
+#[component]
+fn App() -> impl IntoView {
+  let (count, set_count) = create_signal(0);
+  let (x, _set_x) = create_signal(0);
+  view! {
+    <button on:click=move |_| { set_count.update( |n| *n += 1); } 
+    class:red=move || count() % 2 == 1
+    >
+      "Click me:" {move || count()}
+    </button>
+    <button on:click=move |_| { _set_x.update( |n| *n += 10); } 
+    style="position: absolute"
+    style:left=move || format!("{}px", x() + 100)
+    style:background-color=move || format!("rgb({}, {}, 100)", x(), 100)
+    style:max-width="400px"
+    style=("--columns", x)
+
+    >
+      "Move this:" 
+    </button>
+  }  
+}
+```
+```sh
+
+https://book.leptos.dev/view/03_components.html
+## TODO: here
+
+
+
+```
 
 
 

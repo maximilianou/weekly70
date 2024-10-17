@@ -22,7 +22,7 @@ fn CreateAnEffect() -> impl IntoView {
   let (use_last, set_use_last) = create_signal(true);
   create_effect( move |_| {
     log(if use_last() {
-      with!(|first, last| format("{first} {last}"))
+      with!(|first, last| format!("{first} {last}"))
     } else {
       first()
     })
@@ -52,7 +52,7 @@ fn CreateAnEffect() -> impl IntoView {
   }
 }
 
-#[compnent]
+#[component]
 fn ManualVersion() -> impl IntoView {
     let first    = create_node_ref::<Input>();
     let last     = create_node_ref::<Input>();
@@ -79,14 +79,62 @@ fn ManualVersion() -> impl IntoView {
       </h1>
       <form on:change=on_change>
         <label>"First Name" 
-        <input />
+        <input type="text" name="first" node_ref=first />
         </label>
+        <label>"Last Name" 
+        <input type="text" name="last" node_ref=last />
+        </label>
+        <label>"Show Last Name" 
+        <input type="checkbox" name="use_last" checked node_ref=use_last />
+        </label>
+
       </form>
     }
 }
 
+
+#[component]
+fn EffectVsDerivedSignal() -> impl IntoView {
+    let (my_value, set_my_value) = create_signal(String::new());
+    let my_optional_value = move || (!my_value.with(String::is_empty)).then(|| Some(my_value.get()));
+    view! {
+      <input prop:value=my_value on:input=move |ev| set_my_value(event_target_value(&ev)) />
+      <p>
+        <code>"my_optional_value"</code>
+        " is "
+        <code>
+          <Show when=move || my_optional_value().is_some() fallback=|| view! { "None"} >
+            "Some(\"" 
+            { my_optional_value().unwrap() }
+            "\")"
+          </Show>
+        </code>
+      </p>
+    }
+}
+
+#[component]
+pub fn Show<F, W, IV>(
+    children: Box<dyn Fn() -> Fragment>,
+    when: W,
+    fallback: F,
+) -> impl IntoView 
+     where W: Fn() -> bool + 'static,
+     F: Fn() -> IV + 'static,
+     IV: IntoView,
+{
+    let memorized_when = create_memo( move |_| when() );
+    move || match memorized_when.get() {
+        true  => children().into_view(),
+        false => fallback().into_view(), 
+    }
+}
+fn log(msg: impl std::fmt::Display){
+    let log = use_context::<LogContext>().unwrap().0;
+    log.update( |log| log.push(msg.to_string()) );  
+}
 fn main() {
-  leptos::mount_to_body(App);
+  leptos::mount_to_body(App)
 }
 
 

@@ -850,6 +850,13 @@ fn main() {
 https://book.leptos.dev/reactivity/index.html
 
 https://book.leptos.dev/reactivity/14_create_effect.html
+
+ - Signals - Observable - reactivity values
+ - Effects - Observer   - pieces of code
+```
+
+```rust
+
 ```
 
 

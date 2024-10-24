@@ -72,11 +72,25 @@ fn Option3() -> impl IntoView {
 }
 #[component]
 fn GlobalStateCounter() -> impl IntoView {
-    
+    let state = use_context::<RwRignal<GlobalState>>().expect("state to have been provided");
+    let (count, set_count) = create_slice(
+        state,
+        |state| state.count,
+        |state, n| state.count = n,
+    );
     view! {
-
+      <div class="consume blue" style="background-color: blue;">
+        <button
+          on:click=move |_| {
+            set_count( count() + 1 );
+          }
+        >"Incremental Global Count"</button>
+        <br/>
+        <span>"Count is: "{count}</span>
+      </div>
     }
 }
+
 #[component]
 fn App() -> impl IntoView {
 

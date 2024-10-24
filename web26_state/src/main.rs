@@ -14,6 +14,16 @@ fn Option2() -> impl IntoView {
     }
 }
 #[component]
+fn SetterButton(set_count: WriteSignal<u32>) -> impl IntoView {
+  view! {
+    <div class="provider red" style="background-color:red;">
+    <button on:click=move |_| set_count.update(|count| *count += 1) >
+      "Increment Global Count"
+    </button>
+    </div>
+  }
+}
+#[component]
 fn FancyMath() -> impl IntoView {
     let count = use_context::<ReadSignal<u32>>()
     .expect("there to be a count signal provided");
@@ -37,7 +47,7 @@ fn ListItems() -> impl IntoView {
     let squares = move || {
         (0..count())
           .map(|n| view! {<li>{n}<sup>"2"</sup>" is " {n*n}</li>})
-          .collect::<Vec<>>()
+          .collect::<Vec<_>>()
     };
     view! {
         <div class="consumer green">
@@ -46,7 +56,7 @@ fn ListItems() -> impl IntoView {
     }
 }
 #[derive(Default, Clone, Debug)]
-struct GlobalState {
+pub struct GlobalState {
     count: u32,
     name: String,
 }
@@ -56,7 +66,7 @@ fn Option3() -> impl IntoView {
   provide_context(state);
   view! {
     <h1>"Option 3: Passing signals"</h1>
-    <div class="red consumer" style="with: 100%;background-color:red;">
+    <div class="red consumer" style="with: 10%;background-color:red;">
       <h2>"Current Glocal State"</h2>
       <pre>
         {move || {
@@ -72,7 +82,7 @@ fn Option3() -> impl IntoView {
 }
 #[component]
 fn GlobalStateCounter() -> impl IntoView {
-    let state = use_context::<RwRignal<GlobalState>>().expect("state to have been provided");
+    let state = use_context::<RwSignal<GlobalState>>().expect("state to have been provided");
     let (count, set_count) = create_slice(
         state,
         |state| state.count,
@@ -90,11 +100,28 @@ fn GlobalStateCounter() -> impl IntoView {
       </div>
     }
 }
-
 #[component]
-fn App() -> impl IntoView {
-
+fn GlobalStateInput() -> impl IntoView {
+    let state = use_context::<RwSignal<GlobalState>>().expect("state to have been provided");
+    let (name, set_name) = create_slice(
+        state,
+        |state| state.name.clone(),
+        |state, n| state.name = n,
+    );
+    view! {
+      <div class="consumer green" style="background-color:green;">
+        <input 
+          type="text"
+          prop:value=name
+          on:input=move |ev| {
+            set_name(event_target_value(&ev));
+          }
+        />
+        <br/>
+        <span>"Name is: " {name}</span>
+      </div>
+    }
 }
 fn main() {
-    mount_to_body(App);
+    leptos::mount_to_body( || view! { <Option2/><Option3/> } )
 }

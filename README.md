@@ -1342,8 +1342,29 @@ fn main() {
 
 
 ```sh
+Nested Routing
+
+https://book.leptos.dev/router/17_nested_routing.html
+
+reference: Practical Way of Conceptual Review the Remix Project with React explanation:
+https://remix.run/
 
 ```
+
+```rust
+use leptos::*;
+#[component]
+fn App() -> impl IntoView {
+  view! {
+    
+  }
+}
+fn main() {
+  leptos::mount_to_body(App);
+}
+
+```
+
 
 
 

@@ -58,9 +58,14 @@ fn FormExample() -> impl IntoView {
         oninput="this.form.requestSubmit()" />
         <input type="number" name="number" value=number 
         oninput="this.form.requestSubmit()" />
+        <select name="select" onchange="this.form.requestSubmit()">
+        <option selected=move || select() == "A">"A"</option>
+        <option selected=move || select() == "B">"B"</option>
+        <option selected=move || select() == "C">"C"</option>
+        </select>
         </Form>
     }
 }
 fn main() {
-    leptos::move_to_body(App);
+    leptos::mount_to_body(App);
 }

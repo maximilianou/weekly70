@@ -1624,8 +1624,77 @@ fn main() {
 
 
 ```sh
+Form
 https://book.leptos.dev/router/20_form.html
 ```
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Leptos Rust Web</title>
+        <link data-trunk rel="rust" data-wasm-opt="0" data-keep-debug=true />
+        <link rel="stylesheet" href="https://unpkg.com/open-props"/>
+
+        <!-- optional imports that use the props -->
+        <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css"/>
+        <link rel="stylesheet" href="https://unpkg.com/open-props/buttons.min.css"/>
+    
+        <style>
+            h1, h2, h3, h4, h5, h6 {
+                margin-top: var(--size-4);
+                text-align: center;
+            }
+
+            p {
+                margin: var(--size-2);
+            }
+
+            body > picture, button, p, progress, label, input, div {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+            }
+
+            nav, .contact-list-contacts, .tabs {
+                display: flex;
+                justify-content: center;
+            }
+
+            nav a, .contact-list-contacts a, .tabs a {
+                margin: var(--size-2);
+            }
+
+            img {
+                height: 100px;
+                width: auto;
+                margin: auto;
+            }
+        </style>
+    </head>
+    <body>
+    </body>
+</html>
+```
+
+```rust
+use leptos::*;
+
+#[component]
+fn App() -> impl IntoView {
+    view! {
+
+    }
+}
+fn main() {
+    leptos::move_to_body(App);
+}
+
+```
+
 
 ```sh
 ## TODO: here

@@ -37,6 +37,27 @@ fn FormExample() -> impl IntoView {
         </table>
         <h2>"Manual Submission"</h2>
         <Form method="GET" action="" >
+          <input type="text" name="name" value=name />
+          <input type="number" name="number" value=number />
+          <select name="select">
+            <option selected=move || select() == "A">
+              "A"
+            </option>
+            <option selected=move || select() == "B">
+              "B"
+            </option>
+            <option selected=move || select() == "C">
+              "C"
+            </option>
+          </select>
+          <input type="submit" />
+        </Form>
+        <h2>"Automatic submission"</h2>
+        <Form method="GET" action="" >
+        <input type="text" name="name" value=name 
+        oninput="this.form.requestSubmit()" />
+        <input type="number" name="number" value=number 
+        oninput="this.form.requestSubmit()" />
         </Form>
     }
 }

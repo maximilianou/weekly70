@@ -1822,6 +1822,14 @@ pub fn App() -> impl IntoView {
 
 ```sh
 https://book.leptos.dev/web_sys.html
+
+Server Side Rendering SSR
+https://book.leptos.dev/ssr/index.html
+
+
+cargo install cargo-leptos
+
+
 ```
 
 

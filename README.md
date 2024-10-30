@@ -1820,6 +1820,9 @@ pub fn App() -> impl IntoView {
 }
 ```
 
+```sh
+https://book.leptos.dev/web_sys.html
+```
 
 
 ```sh

@@ -1834,6 +1834,10 @@ cargo leptos new --git leptos-rs/start-axum
 
 rustup target add wasm32-unknown-unknown
 
+cargo leptos watch
+
+https://github.com/leptos-rs/cargo-leptos/blob/main/README.md 
+
 ```
 
 

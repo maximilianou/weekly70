@@ -1,3 +1,4 @@
+/// end2end/tests/example.spec.ts
 import { test, expect } from "@playwright/test";
 
 test("homepage has title and links to intro page", async ({ page }) => {

@@ -1,3 +1,4 @@
+//// src/error_template.rs
 use http::status::StatusCode;
 use leptos::*;
 use thiserror::Error;

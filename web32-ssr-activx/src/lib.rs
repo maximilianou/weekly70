@@ -1,3 +1,4 @@
+/// src/lib.rs
 pub mod app;
 
 #[cfg(feature = "hydrate")]

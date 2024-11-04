@@ -1,3 +1,4 @@
+//// src/main.rs
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {

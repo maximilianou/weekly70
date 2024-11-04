@@ -9,6 +9,9 @@
 https://book.leptos.dev/getting_started/index.html
 
 ```sh
+apt install pkg-config
+apt install libssl-dev
+
 cargo install trunk
 
 cargo init web07_leptos
@@ -27,8 +30,10 @@ rustup override set nightly
 # install wasm32 to compile and run webassembly in the browser
 rustup target add wasm32-unknown-unknown
 
-
 cargo add leptos --features=csr,nightly
+
+cargo info leptos
+
 
 ```
 ```html
@@ -1841,13 +1846,585 @@ https://github.com/leptos-rs/cargo-leptos/blob/main/README.md
 ```
 
 
-```sh
-## TODO: here
+
+```rust
+
+//// src/app.rs
+use crate::error_template::{AppError, ErrorTemplate};
+use leptos::*;
+use leptos_meta::*;
+use leptos_router::*;
+
+#[component]
+pub fn App() -> impl IntoView {
+    // Provides context that manages stylesheets, titles, meta tags, etc.
+    provide_meta_context();
+
+    view! {
+
+
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href="/pkg/web31-ssr.css"/>
+
+        // sets the document title
+        <Title text="Welcome to Leptos"/>
+
+        // content for this welcome page
+        <Router fallback=|| {
+            let mut outside_errors = Errors::default();
+            outside_errors.insert_with_default_key(AppError::NotFound);
+            view! {
+                <ErrorTemplate outside_errors/>
+            }
+            .into_view()
+        }>
+            <main>
+                <Routes>
+                    <Route path="" view=HomePage/>
+                </Routes>
+            </main>
+        </Router>
+    }
+}
+
+/// Renders the home page of your application.
+#[component]
+fn HomePage() -> impl IntoView {
+    // Creates a reactive value to update the button
+    let (count, set_count) = create_signal(0);
+    let on_click = move |_| set_count.update(|count| *count += 1);
+
+    view! {
+        <h1>"Welcome to Leptos!"</h1>
+        <button on:click=on_click>"Click Me: " {count}</button>
+    }
+}
+
+//// src/main.rs
+#[cfg(feature = "ssr")]
+#[tokio::main]
+async fn main() {
+    use axum::Router;
+    use leptos::*;
+    use leptos_axum::{generate_route_list, LeptosRoutes};
+    use web31_ssr::app::*;
+    use web31_ssr::fileserv::file_and_error_handler;
+
+    // Setting get_configuration(None) means we'll be using cargo-leptos's env values
+    // For deployment these variables are:
+    // <https://github.com/leptos-rs/start-axum#executing-a-server-on-a-remote-machine-without-the-toolchain>
+    // Alternately a file can be specified such as Some("Cargo.toml")
+    // The file would need to be included with the executable when moved to deployment
+    let conf = get_configuration(None).await.unwrap();
+    let leptos_options = conf.leptos_options;
+    let addr = leptos_options.site_addr;
+    let routes = generate_route_list(App);
+
+    // build our application with a route
+    let app = Router::new()
+        .leptos_routes(&leptos_options, routes, App)
+        .fallback(file_and_error_handler)
+        .with_state(leptos_options);
+
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    logging::log!("listening on http://{}", &addr);
+    axum::serve(listener, app.into_make_service())
+        .await
+        .unwrap();
+}
+
+#[cfg(not(feature = "ssr"))]
+pub fn main() {
+    // no client-side main function
+    // unless we want this to work with e.g., Trunk for a purely client-side app
+    // see lib.rs for hydration function instead
+}
+
+
+//// src/lib.rs
+pub mod app;
+pub mod error_template;
+#[cfg(feature = "ssr")]
+pub mod fileserv;
+
+#[cfg(feature = "hydrate")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn hydrate() {
+    use crate::app::*;
+    console_error_panic_hook::set_once();
+    leptos::mount_to_body(App);
+}
+
+
+//// src/fileserv.rs
+use crate::app::App;
+use axum::response::Response as AxumResponse;
+use axum::{
+    body::Body,
+    extract::State,
+    http::{Request, Response, StatusCode},
+    response::IntoResponse,
+};
+use leptos::*;
+use tower::ServiceExt;
+use tower_http::services::ServeDir;
+
+pub async fn file_and_error_handler(
+    State(options): State<LeptosOptions>,
+    req: Request<Body>,
+) -> AxumResponse {
+    let root = options.site_root.clone();
+    let (parts, body) = req.into_parts();
+
+    let mut static_parts = parts.clone();
+    static_parts.headers.clear();
+    if let Some(encodings) = parts.headers.get("accept-encoding") {
+        static_parts
+            .headers
+            .insert("accept-encoding", encodings.clone());
+    }
+
+    let res = get_static_file(Request::from_parts(static_parts, Body::empty()), &root)
+        .await
+        .unwrap();
+
+    if res.status() == StatusCode::OK {
+        res.into_response()
+    } else {
+        let handler = leptos_axum::render_app_to_stream(options.to_owned(), App);
+        handler(Request::from_parts(parts, body))
+            .await
+            .into_response()
+    }
+}
+
+async fn get_static_file(
+    request: Request<Body>,
+    root: &str,
+) -> Result<Response<Body>, (StatusCode, String)> {
+    // `ServeDir` implements `tower::Service` so we can call it with `tower::ServiceExt::oneshot`
+    // This path is relative to the cargo root
+    match ServeDir::new(root)
+        .precompressed_gzip()
+        .precompressed_br()
+        .oneshot(request)
+        .await
+    {
+        Ok(res) => Ok(res.into_response()),
+        Err(err) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Error serving files: {err}"),
+        )),
+    }
+}
+
+
+
+//// src/error_template.rs
+use http::status::StatusCode;
+use leptos::*;
+use thiserror::Error;
+
+#[derive(Clone, Debug, Error)]
+pub enum AppError {
+    #[error("Not Found")]
+    NotFound,
+}
+
+impl AppError {
+    pub fn status_code(&self) -> StatusCode {
+        match self {
+            AppError::NotFound => StatusCode::NOT_FOUND,
+        }
+    }
+}
+
+// A basic function to display errors served by the error boundaries.
+// Feel free to do more complicated things here than just displaying the error.
+#[component]
+pub fn ErrorTemplate(
+    #[prop(optional)] outside_errors: Option<Errors>,
+    #[prop(optional)] errors: Option<RwSignal<Errors>>,
+) -> impl IntoView {
+    let errors = match outside_errors {
+        Some(e) => create_rw_signal(e),
+        None => match errors {
+            Some(e) => e,
+            None => panic!("No Errors found and we expected errors!"),
+        },
+    };
+    // Get Errors from Signal
+    let errors = errors.get_untracked();
+
+    // Downcast lets us take a type that implements `std::error::Error`
+    let errors: Vec<AppError> = errors
+        .into_iter()
+        .filter_map(|(_k, v)| v.downcast_ref::<AppError>().cloned())
+        .collect();
+    println!("Errors: {errors:#?}");
+
+    // Only the response code for the first error is actually sent from the server
+    // this may be customized by the specific application
+    #[cfg(feature = "ssr")]
+    {
+        use leptos_axum::ResponseOptions;
+        let response = use_context::<ResponseOptions>();
+        if let Some(response) = response {
+            response.set_status(errors[0].status_code());
+        }
+    }
+
+    view! {
+        <h1>{if errors.len() > 1 {"Errors"} else {"Error"}}</h1>
+        <For
+            // a function that returns the items we're iterating over; a signal is fine
+            each= move || {errors.clone().into_iter().enumerate()}
+            // a unique key for each item as a reference
+            key=|(index, _error)| *index
+            // renders each item to a view
+            children=move |error| {
+                let error_string = error.1.to_string();
+                let error_code= error.1.status_code();
+                view! {
+                    <h2>{error_code.to_string()}</h2>
+                    <p>"Error: " {error_string}</p>
+                }
+            }
+        />
+    }
+}
+
+
+/// end2end/tests/example.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("homepage has title and heading text", async ({ page }) => {
+  await page.goto("http://localhost:3000/");
+
+  await expect(page).toHaveTitle("Welcome to Leptos");
+
+  await expect(page.locator("h1")).toHaveText("Welcome to Leptos!");
+});
+
 
 ```
 
 
 
+
+
+```rust
+
+
+/// src/app.rs
+use leptos::*;
+use leptos_meta::*;
+use leptos_router::*;
+
+#[component]
+pub fn App() -> impl IntoView {
+    // Provides context that manages stylesheets, titles, meta tags, etc.
+    provide_meta_context();
+
+    view! {
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href="/pkg/web32-ssr-activx.css"/>
+
+        // sets the document title
+        <Title text="Welcome to Leptos"/>
+
+        // content for this welcome page
+        <Router>
+            <main>
+                <Routes>
+                    <Route path="" view=HomePage/>
+                    <Route path="/*any" view=NotFound/>
+                </Routes>
+            </main>
+        </Router>
+    }
+}
+
+/// Renders the home page of your application.
+#[component]
+fn HomePage() -> impl IntoView {
+    // Creates a reactive value to update the button
+    let (count, set_count) = create_signal(0);
+    let on_click = move |_| set_count.update(|count| *count += 1);
+
+    view! {
+        <h1>"Welcome to Leptos!"</h1>
+        <button on:click=on_click>"Click Me: " {count}</button>
+    }
+}
+
+/// 404 - Not Found
+#[component]
+fn NotFound() -> impl IntoView {
+    // set an HTTP status code 404
+    // this is feature gated because it can only be done during
+    // initial server-side rendering
+    // if you navigate to the 404 page subsequently, the status
+    // code will not be set because there is not a new HTTP request
+    // to the server
+    #[cfg(feature = "ssr")]
+    {
+        // this can be done inline because it's synchronous
+        // if it were async, we'd use a server function
+        let resp = expect_context::<leptos_actix::ResponseOptions>();
+        resp.set_status(actix_web::http::StatusCode::NOT_FOUND);
+    }
+
+    view! {
+        <h1>"Not Found"</h1>
+    }
+}
+
+/// src/lib.rs
+pub mod app;
+
+#[cfg(feature = "hydrate")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn hydrate() {
+    use app::*;
+    use leptos::*;
+
+    console_error_panic_hook::set_once();
+
+    mount_to_body(App);
+}
+
+
+//// src/main.rs
+#[cfg(feature = "ssr")]
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    use actix_files::Files;
+    use actix_web::*;
+    use leptos::*;
+    use leptos_actix::{generate_route_list, LeptosRoutes};
+    use web32_ssr_activx::app::*;
+
+    let conf = get_configuration(None).await.unwrap();
+    let addr = conf.leptos_options.site_addr;
+    // Generate the list of routes in your Leptos App
+    let routes = generate_route_list(App);
+    println!("listening on http://{}", &addr);
+
+    HttpServer::new(move || {
+        let leptos_options = &conf.leptos_options;
+        let site_root = &leptos_options.site_root;
+
+        App::new()
+            // serve JS/WASM/CSS from `pkg`
+            .service(Files::new("/pkg", format!("{site_root}/pkg")))
+            // serve other assets from the `assets` directory
+            .service(Files::new("/assets", site_root))
+            // serve the favicon from /favicon.ico
+            .service(favicon)
+            .leptos_routes(leptos_options.to_owned(), routes.to_owned(), App)
+            .app_data(web::Data::new(leptos_options.to_owned()))
+        //.wrap(middleware::Compress::default())
+    })
+    .bind(&addr)?
+    .run()
+    .await
+}
+
+#[cfg(feature = "ssr")]
+#[actix_web::get("favicon.ico")]
+async fn favicon(
+    leptos_options: actix_web::web::Data<leptos::LeptosOptions>,
+) -> actix_web::Result<actix_files::NamedFile> {
+    let leptos_options = leptos_options.into_inner();
+    let site_root = &leptos_options.site_root;
+    Ok(actix_files::NamedFile::open(format!(
+        "{site_root}/favicon.ico"
+    ))?)
+}
+
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+pub fn main() {
+    // no client-side main function
+    // unless we want this to work with e.g., Trunk for pure client-side testing
+    // see lib.rs for hydration function instead
+    // see optional feature `csr` instead
+}
+
+#[cfg(all(not(feature = "ssr"), feature = "csr"))]
+pub fn main() {
+    // a client-side main function is required for using `trunk serve`
+    // prefer using `cargo leptos serve` instead
+    // to run: `trunk serve --open --features csr`
+    use web32_ssr_activx::app::*;
+
+    console_error_panic_hook::set_once();
+
+    leptos::mount_to_body(App);
+}
+
+
+/// end2end/tests/example.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("homepage has title and links to intro page", async ({ page }) => {
+  await page.goto("http://localhost:3000/");
+
+  await expect(page).toHaveTitle("Welcome to Leptos");
+
+  await expect(page.locator("h1")).toHaveText("Welcome to Leptos!");
+});
+
+
+```
+
+
+
+
+```sh
+Debian
+```
+```dockerfile
+# Get started with a build env with Rust nightly
+FROM rustlang/rust:nightly-bullseye as builder
+
+# If you’re using stable, use this instead
+# FROM rust:1.74-bullseye as builder
+
+# Install cargo-binstall, which makes it easier to install other
+# cargo extensions like cargo-leptos
+RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN cp cargo-binstall /usr/local/cargo/bin
+
+# Install cargo-leptos
+RUN cargo binstall cargo-leptos -y
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+# Make an /app dir, which everything will eventually live in
+RUN mkdir -p /app
+WORKDIR /app
+COPY . .
+
+# Build the app
+RUN cargo leptos build --release -vv
+
+FROM debian:bookworm-slim as runtime
+WORKDIR /app
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
+# Copy the server binary to the /app directory
+COPY --from=builder /app/target/release/leptos_start /app/
+
+# /target/site contains our JS/WASM/CSS, etc.
+COPY --from=builder /app/target/site /app/site
+
+# Copy Cargo.toml if it’s needed at runtime
+COPY --from=builder /app/Cargo.toml /app/
+
+# Set any required env variables and
+ENV RUST_LOG="info"
+ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+ENV LEPTOS_SITE_ROOT="site"
+EXPOSE 8080
+
+# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
+# Run the server
+CMD ["/app/leptos_start"]
+```
+
+```sh
+Alpine
+```
+```dockerfile
+# Get started with a build env with Rust nightly
+FROM rustlang/rust:nightly-alpine as builder
+
+RUN apk update && \
+    apk add --no-cache bash curl npm libc-dev binaryen
+
+RUN npm install -g sass
+
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/leptos-rs/cargo-leptos/releases/latest/download/cargo-leptos-installer.sh | sh
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+WORKDIR /work
+COPY . .
+
+RUN cargo leptos build --release -vv
+
+FROM rustlang/rust:nightly-alpine as runner
+
+WORKDIR /app
+
+COPY --from=builder /work/target/release/leptos_start /app/
+COPY --from=builder /work/target/site /app/site
+COPY --from=builder /work/Cargo.toml /app/
+
+ENV RUST_LOG="info"
+ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+ENV LEPTOS_SITE_ROOT=./site
+EXPOSE 8080
+
+CMD ["/app/leptos_start"]
+```
+
+
+
+
+```sh
+https://book.leptos.dev/server/26_extractors.html
+```
+
+
+```
+```
+
+
+
+
+```sh
+## TODO: here
+cargo leptos new --git leptos-rs/start
+  [TODO] server side
+  [TODO] client side
+
+cargo leptos new --git leptos-rs/start-axum
+  [TODO] server side
+  [TODO] client side
+
+[TODO] docker - local development docker compose
+[TODO] docker - TDD development docker compose
+[TODO] docker - prod dockerfile
+[TODO] docker - kubernetes deployment
+[TODO] docker - CI -
+[TODO] docker - CD -
+
+```
+
+
+
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
 
 
 

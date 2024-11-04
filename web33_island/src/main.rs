@@ -35,13 +35,13 @@ fn HomePage() -> impl IntoView {
   view! {
     <h1>"Welcome to Leptos!"</h1>
     <p>"Click any of the tabs below to read a recipe"</p>
-    <Tab labels>
+    <Tabs labels>
       <div>{tabs()}</div>
-    </Tab>
+    </Tabs>
   }
 }
 #[island]
-fn Tabs(labels: Vec<String>, children: Children) -> IntoView {
+fn Tabs(labels: Vec<String>, children: Children) -> impl IntoView {
   let (selected, set_selected) = create_signal(0);
   provide_context(selected);
   let buttons = labels
@@ -56,14 +56,14 @@ fn Tabs(labels: Vec<String>, children: Children) -> IntoView {
     }).collect_view();
     view! {
         <div style="display: flex; width: 100%; justify-content: space-around; background-color: lightgreen; padding: 10px;">
-          {button}
+          {buttons}
         </div>
         {children()}
     }
 }
 #[island]
 fn Tab(index: usize, children: Children) -> impl IntoView {
-  let selected = expect_content::<ReadSignal<usize>>();
+  let selected = expect_context::<ReadSignal<usize>>();
   view! {
     <div
       style:background-color="lightgreen"

@@ -2389,6 +2389,43 @@ https://book.leptos.dev/server/26_extractors.html
 
 
 ```sh
+rustup update
+
+rustup update
+info: syncing channel updates for 'stable-x86_64-unknown-linux-gnu'
+info: syncing channel updates for 'nightly-x86_64-unknown-linux-gnu'
+info: latest update on 2024-11-05, rust version 1.84.0-nightly (fbab78289 2024-11-04)
+info: downloading component 'rust-std' for 'wasm32-unknown-unknown'
+ 19.1 MiB /  19.1 MiB (100 %)   4.8 MiB/s in  5s ETA:  0s
+info: downloading component 'cargo'
+  8.7 MiB /   8.7 MiB (100 %)   1.3 MiB/s in  2s ETA:  0s
+info: downloading component 'clippy'
+  2.8 MiB /   2.8 MiB (100 %)   1.3 MiB/s in  1s ETA:  0s
+info: downloading component 'rust-docs'
+ 16.7 MiB /  16.7 MiB (100 %)   3.6 MiB/s in  4s ETA:  0s
+info: downloading component 'rust-std'
+...
+```
+
+```sh
+rustup toolchain install nightly
+rustup target add wasm32-unknown-unknown
+cargo install cargo-generate
+cargo leptos build --release
+  target/server/release
+  target/site
+
+Copy these files to your remote server. The directory structure should be:
+  leptos_start
+  site/
+
+Set the following environment variables (updating for your project as needed):
+  export LEPTOS_OUTPUT_NAME="leptos_start"
+  export LEPTOS_SITE_ROOT="site"
+  export LEPTOS_SITE_PKG_DIR="pkg"
+  export LEPTOS_SITE_ADDR="127.0.0.1:3000"
+  export LEPTOS_RELOAD_PORT="3001"
+
 
 ```
 

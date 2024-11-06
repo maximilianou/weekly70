@@ -2430,7 +2430,20 @@ Set the following environment variables (updating for your project as needed):
 ```
 
 
+```sh
+cargo init web36-minimal
+cargo add leptos --features=ssr,csr,hydrate,nightly
+touch index.html
+trunk serve
 
+   Compiling leptos_dom v0.6.15
+   Compiling leptos_server v0.6.15
+error[E0609]: no field `children` on type `html::HtmlElement<El>`
+   --> /home/debian/.cargo/registry/src/index.crates.io-6f17d22bba15001f/leptos_dom-0.6.15/src/html.rs:628:30
+    |
+628 |             if matches!(self.children, ElementChildren::Chunks(_)) {
+    |                              ^^^^^^^^ unknown field
+```
 
 ```sh
 ## TODO: here

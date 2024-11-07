@@ -1,4 +1,5 @@
 use leptos::*;
+
 #[component]
 fn App() -> impl IntoView {
     view! {

@@ -2446,7 +2446,23 @@ error[E0609]: no field `children` on type `html::HtmlElement<El>`
 ```
 
 ```sh
+rustup self uninstall
+cargo install trunk
+
+```
+
+```sh
 ## TODO: here
+
+[TODO] docker - local development docker compose
+rustup self uninstall
+cargo install trunk
+
+rustup toolchain install nightly
+rustup target add wasm32-unknown-unknown
+cargo install cargo-generate
+
+
 cargo leptos new --git leptos-rs/start
   [TODO] server side
   [TODO] client side
@@ -2455,7 +2471,6 @@ cargo leptos new --git leptos-rs/start-axum
   [TODO] server side
   [TODO] client side
 
-[TODO] docker - local development docker compose
 [TODO] docker - TDD development docker compose
 [TODO] docker - prod dockerfile
 [TODO] docker - kubernetes deployment

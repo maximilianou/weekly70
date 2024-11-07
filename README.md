@@ -2463,6 +2463,10 @@ rustup target add wasm32-unknown-unknown
 cargo install cargo-generate
 
 
+
+
+
+
 cargo leptos new --git leptos-rs/start
   [TODO] server side
   [TODO] client side

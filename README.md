@@ -2463,7 +2463,19 @@ rustup target add wasm32-unknown-unknown
 cargo install cargo-generate
 
 
+apt -y install apt-transport-https software-properties-common ca-certificates curl gnupg lsb-release; echo  'deb [arch=amd64] https://download.docker.com/linux/debian  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable' | tee /etc/apt/sources.list.d/docker.list > /dev/null ;  install -m 0755 -d /etc/apt/keyrings ; curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg ; chmod a+r /etc/apt/keyrings/docker.gpg ; echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null ; apt -y update; apt -y remove docker docker-engine docker.io containerd runc; apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin ; usermod -aG docker dev01
 
+
+touch Dockerfile
+cargo init web38
+cd web38
+cargo add leptos --features=csr,nightly
+cargo add leptos-router --features=csr,nightly
+rustup target add wasm32-unknown-unknown
+rustup toolchain install nightly
+rustup install cargo-generate
+
+docker build .
 
 
 

@@ -2558,10 +2558,16 @@ docker build -t rustapp01 .
 docker run -p 8080:8080 rustapp01
 ```
 
+```sh
+[TODO] : docker-compose.yml development
+[TODO] : Dockerfile.dev
+[TODO] : Dockerfile.prod
+
+```
+
 
 
 ```sh
-
 cargo leptos new --git leptos-rs/start
   [TODO] server side
   [TODO] client side

@@ -2562,6 +2562,115 @@ docker run -p 8080:8080 rustapp01
 
 
 
+```sh
+We can develop, run the docker compose to connect services over the internal network, and continue to change the code while developing, without shuting down the services.
+
+Local Development Environmanent - 
+Watch mode into the container over 
+cargo leptos watch, 
+dockerfile
+docker compose up
+```
+
+```sh
+/web40-docker/
+
+docker compose up
+```
+
+```yml
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker compose reference guide at
+# https://docs.docker.com/reference/compose-file/
+
+# Here the instructions define your application as a service called "server".
+# This service is built from the Dockerfile in the current directory.
+# You can add other services your application may depend on here, such as a
+# database or a cache. For examples, see the Awesome Compose repository:
+# https://github.com/docker/awesome-compose
+services:
+  server:
+    build:
+      context: .
+      target: development
+    ports:
+      - 8080:8080
+    environment:
+      - PG_DBNAME=example
+      - PG_HOST=db
+      - PG_USER=postgres
+      - PG_PASSWORD=mysecretpassword
+      - ADDRESS=0.0.0.0:8000
+      - RUST_LOG=debug
+    volumes:
+      - ./app:/app      
+    # The commented out section below is an example of how to define a PostgreSQL
+    # database that your application can use. `depends_on` tells Docker Compose to
+    # start the database before your application. The `db-data` volume persists the
+    # database data between container restarts. The `db-password` secret is used
+    # to set the database password. You must create `db/password.txt` and add
+    # a password of your choosing to it before running `docker compose up`.
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#  db:
+#    image: postgres
+#    restart: always
+#    user: postgres
+#    secrets:
+#      - db-password
+#    volumes:
+#      - db-data:/var/lib/postgresql/data
+#    environment:
+#      - POSTGRES_DB=example
+#      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+#    expose:
+#      - 5432
+#    healthcheck:
+#      test: ["CMD", "pg_isready"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#volumes:
+#  db-data:
+#secrets:
+#  db-password:
+#    file: db/password.txt
+```
+
+```dockerfile
+# ./Dockerfile
+# Get started with a build env with Rust nightly
+FROM rustlang/rust:nightly-bookworm AS development
+
+# Install cargo-binstall, which makes it easier to install other
+# cargo extensions like cargo-leptos
+RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN cp cargo-binstall /usr/local/cargo/bin
+
+# Install cargo-leptos
+RUN cargo binstall cargo-leptos -y
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+# Make an /app dir, which everything will eventually live in
+RUN mkdir -p /app
+WORKDIR /app
+COPY ./app .
+
+# Set any required env variables and
+ENV RUST_LOG="debug"
+ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+ENV LEPTOS_SITE_ROOT="site"
+EXPOSE 8080
+CMD [ "cargo", "leptos", "watch" ]
+```
+
+
+
+
 
 ```sh
 [TODO] : docker-compose.yml development
@@ -2576,9 +2685,8 @@ https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.dev.draft
 
 https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.prod.draft
 
-
-
 ```
+
 
 
 
@@ -2677,305 +2785,6 @@ cargo leptos new --git leptos-rs/start-axum
 ----------------------------------------------
 ----------------------------------------------
 ----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-----------------------------------------------
-## Yew
-```rust
-use yew::prelude::*;
-
-#[function_component(App)]
-fn app() -> Html {
-  html! {
-    <>
-      <h1>{ "Video Tutorial Explorer! " }</h1>
-      <div>
-        <p>{ "Homelab Day 1: " }</p>
-        <p>{ "Homelab Day 2: " }</p>
-        <p>{ "Homelab Day 3: GitOps way of kubernetes " }</p>
-      </div>
-      <div>
-        <h3>{ "Homelab Day 3: GitOps way of kubernetes " }</h3>
-        <img src="https://via.placeholder.com/640x360.png?text=Homelab Day 3: GitOps way of kubernetes" alt="video thumbnail" />
-      </div>
-    </>
-  }
-}
-
-fn main() {
-    yew::Renderer::<App>::new().render();
-}
-```
-
------------
-
-
-```rust
-use yew::{prelude::*, virtual_dom::VNode};
-#[function_component(App)]
-fn app() -> Html {
-
-  struct Video {
-    id: usize,
-    title: String,
-    speaker: String,
-    url: String,  
-  }  
-  let videos: Vec<Video> = vec![
-    Video {
-      id: 1,
-      title: "Homelab Day 1: proxmox".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 1".to_string(),
-    },
-    Video {
-      id: 2,
-      title: "Homelab Day 2: ".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 2".to_string(),
-    },
-    Video {
-      id: 3,
-      title: "Homelab Day 3: GitOps way of kubernetes".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 3".to_string(),
-    },
-  ];
-  let videos: VNode = videos.iter().map(|video: &Video| html!{ 
-    <>
-    <p key={ video.id }>{format!(" {}: {} ", video.speaker, video.title)}</p>
-    <img url={video.url.clone()} />    
-    </>
-  }).collect::<Html>();
-
-  html! {
-    <>
-      <h1>{ "Video Tutorial Explorer! " }</h1>
-      <div>
-        {videos}
-      </div>
-     </>
-  }
-}
-fn main() {
-    yew::Renderer::<App>::new().render();
-}
-```
-
------------
-
-
-```rust
-use yew::{prelude::*};
-#[derive(Clone, PartialEq)]
-struct Video {
-  id: usize,
-  title: String,
-  speaker: String,
-  url: String,  
-}
-#[derive(Properties, PartialEq)]
-struct VideosListProps {
-  videos: Vec<Video>,
-}
-#[function_component(VideosList)]
-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-  videos.iter().map(|video: &Video| html!{ 
-    <>
-    <p key={ video.id }>{format!(" {}: {} ", video.speaker, video.title)}</p>
-    <img url={video.url.clone()} />    
-    </>
-  }).collect()
-}
-#[function_component(App)]
-fn app() -> Html {
-  let videos: Vec<Video> = vec![
-    Video {
-      id: 1,
-      title: "Homelab Day 1: proxmox".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 1".to_string(),
-    },
-    Video {
-      id: 2,
-      title: "Homelab Day 2: ".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 2".to_string(),
-    },
-    Video {
-      id: 3,
-      title: "Homelab Day 3: GitOps way of kubernetes".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "https://via.placeholder.com/640x360.png?text=Homelab Day 3".to_string(),
-    },
-  ];  
-  html! {
-    <>
-      <h1>{ "Video Tutorial Explorer! " }</h1>
-      <div>
-        <VideosList videos={ videos } />
-      </div>
-     </>
-  }
-}
-fn main() {
-    yew::Renderer::<App>::new().render();
-}
-```
-
------------
-
-#### Modules
-
-```rust
-use yew::{prelude::*};
-use crate::video::*;
-mod video {
-  use yew::{prelude::*};
-  #[derive(Clone, PartialEq)]
-  pub struct Video {
-    pub id: usize,
-    pub title: String,
-    pub speaker: String,
-    pub url: String,  
-  }  
-  #[derive(Properties, PartialEq)]
-  pub struct VideosListProps {
-    pub videos: Vec<Video>,
-  }
-  #[function_component(VideosList)]
-  pub fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-    videos.iter().map(|video: &Video| html!{ 
-      <>
-      <p key={ video.id }>{format!(" {}: {} ", video.speaker, video.title)}</p>
-      <img url={video.url.clone()} />    
-      </>
-    }).collect()
-  }
-}
-#[function_component(App)]
-fn app() -> Html {  
-  let videos: Vec<Video> = vec![
-    Video {
-      id: 1,
-      title: "Homelab Day 1: proxmox".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v01homelab01proxmox.jpg".to_string(),
-    },
-    Video {
-      id: 2,
-      title: "Homelab Day 2: ".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v02homelab02.webp".to_string(),
-    },
-    Video {
-      id: 3,
-      title: "Homelab Day 3: GitOps way of kubernetes".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v03homelab03gitopskubernetes.webp".to_string(),
-    },
-  ];  
-  html! {
-    <>
-      <h1>{ "Video Tutorial Explorer! " }</h1>
-      <div>
-        <VideosList videos={ videos } />
-      </div>
-     </>
-  }
-}
-fn main() {
-    yew::Renderer::<App>::new().render();
-}
-```
-
------------
-
-#### Modules in different files
-
-- src/main.rs
-```rust
-use yew::{prelude::*};
-mod video;
-use video::video::*;
-#[function_component(App)]
-fn app() -> Html {  
-  let videos: Vec<Video> = vec![
-    Video {
-      id: 1,
-      title: "Homelab Day 1: proxmox".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v01homelab01proxmox.jpg".to_string(),
-    },
-    Video {
-      id: 2,
-      title: "Homelab Day 2: ".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v02homelab02.webp".to_string(),
-    },
-    Video {
-      id: 3,
-      title: "Homelab Day 3: GitOps way of kubernetes".to_string(),
-      speaker: "Maximiliano Usich".to_string(),
-      url: "img/v03homelab03gitopskubernetes.webp".to_string(),
-    },
-  ];
-  
-  html! {
-    <>
-      <h1>{ "Video Tutorial Explorer! " }</h1>
-      <div>
-        <VideosList videos={ videos } />
-      </div>
-     </>
-  }
-}
-
-fn main() {
-    yew::Renderer::<App>::new().render();
-}
-```
-
-- src/video/mod.rs
-```rust
-pub mod video {
-    use yew::{prelude::*};  
-    #[derive(Clone, PartialEq)]
-    pub struct Video {
-      pub id: usize,
-      pub title: String,
-      pub speaker: String,
-      pub url: String,  
-    }
-    #[derive(Properties, PartialEq)]
-    pub struct VideosListProps {
-      pub videos: Vec<Video>,
-    }    
-    #[function_component(VideosList)]
-    pub fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-      videos.iter().map(|video: &Video| html!{ 
-        <>
-        <p key={ video.id }>{format!(" {}: {} ", video.speaker, video.title)}</p>
-        <img url={video.url.clone()} />    
-        </>
-      }).collect()
-    }
-  }
-```
-
-```sh
-trunk serve
-```
-
------------
-
-#### Modules 
-
 ----------------------------------------------
 ----------------------------------------------
 ----------------------------------------------

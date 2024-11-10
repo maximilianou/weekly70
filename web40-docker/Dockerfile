@@ -1,6 +1,6 @@
 # ./Dockerfile
 # Get started with a build env with Rust nightly
-FROM rustlang/rust:nightly-bookworm AS builder
+FROM rustlang/rust:nightly-bookworm AS development
 
 # Install cargo-binstall, which makes it easier to install other
 # cargo extensions like cargo-leptos

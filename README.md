@@ -2484,7 +2484,7 @@ web39-docker
 -------------
 
 
-cargo leptos new -g leptos-rs/start-axum
+cargo leptos new -g leptos-rs/start-axum -n app
 cargo leptos watch
 curl http://localhost:3000/
 cargo leptos build
@@ -2501,6 +2501,7 @@ touch Dockerfile
 ```
 
 ```dockerfile
+# ./Dockerfile
 # Get started with a build env with Rust nightly
 FROM rustlang/rust:nightly-bookworm AS builder
 
@@ -2558,12 +2559,27 @@ docker build -t rustapp01 .
 docker run -p 8080:8080 rustapp01
 ```
 
+
+
+
+
 ```sh
 [TODO] : docker-compose.yml development
+
+https://github.com/maximilianou/weekly50/blob/main/docker/docker-compose.yml
+
 [TODO] : Dockerfile.dev
+
+https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.dev.draft
+
 [TODO] : Dockerfile.prod
 
+https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.prod.draft
+
+
+
 ```
+
 
 
 
@@ -2585,6 +2601,7 @@ cargo leptos new --git leptos-rs/start-axum
 ```
 
 
+![GitOps Continuous Delivery on Kubernetes with Flux LFS269 - Linux Fundation](https://github.com/maximilianou/weekly50/blob/main/share/maximiliano-usich-gitops-continuous-delivery-on-kubernetes-with-flux-lfs269-certificate.png "Maximiliano Usich - GitOps Continuous Delivery on Kubernetes with Flux LFS269 - Linux Fundation")
 
 ----------------------------------------------
 ----------------------------------------------

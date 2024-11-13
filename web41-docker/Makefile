@@ -1,4 +1,3 @@
-
 new-app:
 	cargo leptos new -g leptos-rs/start-axum -n app 
 	curl -o Dockerfile https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web40-docker/Dockerfile
@@ -22,4 +21,3 @@ clean:
 	# docker image rm web40-docker-server
 	# docker image rm web40-docker-app-dev
 	# docker image rm rust-app-watch
-

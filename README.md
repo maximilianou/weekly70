@@ -2669,9 +2669,6 @@ CMD [ "cargo", "leptos", "watch" ]
 ```
 
 
-
-
-
 ```sh
 [TODO] : docker-compose.yml development
 
@@ -2688,7 +2685,9 @@ https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.prod.draft
 ```
 
 
-
+```sh
+[TODO] db
+```
 
 
 ```sh

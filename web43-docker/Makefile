@@ -5,7 +5,7 @@ new-app:
 	curl -o compose.yml https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web40-docker/compose.yml
 
 dev-app:
-	docker compose up
+	docker compose up --remove-orphans
 
 run-app:
 	docker build -f Dockerfile.prod -t rust-app-prod .
@@ -18,6 +18,7 @@ del-app:
 clean:
 	cd app && cargo clean
 	docker container prune
+	docker-compose up -d --remove-orphans	
 	# docker image rm rustapp01
 	# docker image rm web40-docker-server
 	# docker image rm web40-docker-app-dev

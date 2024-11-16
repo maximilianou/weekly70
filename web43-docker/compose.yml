@@ -34,17 +34,17 @@ services:
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_MAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PW}
-    ports:
-      - "15432:80"        
-    depends_on:
-        postgres:
-          condition: service_healthy
+#  pgadmin:
+#    container_name: pgadmin
+#    image: dpage/pgadmin4:latest
+#    environment:
+#      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_MAIL}
+#      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PW}
+#    ports:
+#      - "15432:80"        
+#    depends_on:
+#        postgres:
+#          condition: service_healthy
 
 
 #  db:

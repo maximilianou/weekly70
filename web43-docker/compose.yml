@@ -6,30 +6,28 @@ services:
     ports:
       - 8080:8080
     environment:
-      - PG_DBNAME=example
-      - PG_HOST=db
-      - PG_USER=postgres
-      - PG_PASSWORD=mysecretpassword
+      - PG_DBNAME=${POSTGRES_DB}
+      - PG_HOST=postgres
+      - PG_USER=${POSTGRES_USER}
+      - PG_PASSWORD=${POSTGRES_PW}
       - ADDRESS=0.0.0.0:8000
       - RUST_LOG=debug
     volumes:
       - ./app:/app      
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-  db:
-    image: postgres
-    restart: always
-    user: postgres
-    secrets:
-      - db-password
-    volumes:
-      - db-data:/var/lib/postgresql/data
+
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
     environment:
-      - POSTGRES_DB=example
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-    expose:
-      - 5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PW}
+      - POSTGRES_DB=${POSTGRES_DB} #optional (specify default database instead of $POSTGRES_DB)
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s
@@ -37,22 +35,57 @@ services:
       retries: 5
 
   pgadmin:
-    image: dpage/pgadmin4
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: maximilianou@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: mysecretpassword
-      PGADMIN_LISTEN_PORT: 80
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_MAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PW}
     ports:
-      - 15432:80
-    volumes:
-      - db-data:/var/lib/postgresql/data
+      - "15432:80"        
     depends_on:
-        db:
+        postgres:
           condition: service_healthy
 
 
-volumes:
-  db-data:
-secrets:
-  db-password:
-    file: db/password.txt
+#  db:
+#    image: postgres
+#    restart: always
+#    user: postgres
+#    secrets:
+#      - db-password
+#    volumes:
+#      - db-data:/var/lib/postgresql/data
+#    environment:
+#      - POSTGRES_DB=example
+#      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+#    expose:
+#      - 5432
+#    healthcheck:
+#      test: ["CMD", "pg_isready"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#
+#
+#
+#  pgadmin:
+#    image: dpage/pgadmin4
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: maximilianou@gmail.com
+#      PGADMIN_DEFAULT_PASSWORD: mysecretpassword
+#      PGADMIN_LISTEN_PORT: 80
+#    ports:
+#      - 15432:80
+#    volumes:
+#      - db-data:/var/lib/postgresql/data
+#    depends_on:
+#        db:
+#          condition: service_healthy
+#
+#
+#volumes:
+#  db-data:
+#secrets:
+#  db-password:
+#    file: db/password.txt
+

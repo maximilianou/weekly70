@@ -31,4 +31,14 @@ db-02:
 
 db-03:	
 	cd bookstore && cargo run
+
+db-04:
+	cd bookstore && mkdir migrations
+
+db-05
+	cargo install sqlx-cli
+
+db-06
+	~/.cargo/bin/sqlx migrate build-script
+
 	

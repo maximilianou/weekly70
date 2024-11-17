@@ -2670,19 +2670,195 @@ CMD [ "cargo", "leptos", "watch" ]
 
 
 ```sh
-[TODO] : docker-compose.yml development
+[DONE] : docker-compose.yml development
 
 https://github.com/maximilianou/weekly50/blob/main/docker/docker-compose.yml
 
-[TODO] : Dockerfile.dev
+[DONE] : Dockerfile.dev
 
 https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.dev.draft
 
-[TODO] : Dockerfile.prod
+[DONE] : Dockerfile.prod
 
 https://github.com/maximilianou/weekly50/blob/main/docker/Dockerfile.prod.draft
 
 ```
+
+
+
+```makefile
+# ./Makefile
+new-app:
+	cargo leptos new -g leptos-rs/start-axum -n app 
+	curl -o Dockerfile https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/Dockerfile
+	curl -o Dockerfile.prod https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/Dockerfile.prod
+	curl -o compose.yml https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/compose.yml
+
+dev-app:
+	docker compose up --remove-orphans
+
+run-app:
+	docker build -f Dockerfile.prod -t rust-app-prod .
+
+del-app:
+	rm -r app
+	rm Dockerfile Dockerfile.prod compose.yml
+
+clean:
+	cd app && cargo clean
+	docker container prune
+	docker-compose up -d --remove-orphans
+	# docker image ls
+	# docker image rm rustapp01
+	# docker image rm web40-docker-server
+	# docker image rm web40-docker-app-dev
+	# docker image rm rust-app-watch	
+```
+
+
+```yml
+# ./compose.yml
+services:
+  server:
+    build:
+      context: .
+      target: development
+    user: appuser
+    ports:
+      - 8080:8080
+#    environment:
+#      - PG_DBNAME=${POSTGRES_DB}
+#      - PG_HOST=postgres
+#      - PG_USER=${POSTGRES_USER}
+#      - PG_PASSWORD=${POSTGRES_PW}
+#      - ADDRESS=0.0.0.0:8000
+#      - RUST_LOG=debug
+    volumes:
+      - ./app:/app      
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports:
+      - 5432:5432
+    #user: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready -U postgres -d demo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    ports:
+      - 3333:8080
+```
+
+```Dockerfile
+# ./Dockerfile
+# Get started with a build env with Rust nightly
+FROM rustlang/rust:nightly-bookworm AS development
+
+RUN groupadd -g 1000 appgroup && \
+    useradd -m -u 1000 -g appgroup appuser 
+RUN mkdir /app && chown appuser:appgroup /app
+USER appuser
+WORKDIR /app
+
+# Install cargo-binstall, which makes it easier to install other
+# cargo extensions like cargo-leptos
+RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN cp cargo-binstall /usr/local/cargo/bin
+
+# Install cargo-leptos
+RUN cargo binstall cargo-leptos -y
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+# Make an /app dir, which everything will eventually live in
+RUN mkdir -p /app
+WORKDIR /app
+COPY ./app .
+
+# Set any required env variables and
+ENV RUST_LOG="debug"
+ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+ENV LEPTOS_SITE_ROOT="site"
+EXPOSE 8080
+CMD [ "cargo", "leptos", "watch" ]
+```
+
+```dockerfile
+# ./Dockerfile.prod
+# Get started with a build env with Rust nightly
+FROM rustlang/rust:nightly-bookworm AS builder
+
+# Install cargo-binstall, which makes it easier to install other
+# cargo extensions like cargo-leptos
+RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
+RUN cp cargo-binstall /usr/local/cargo/bin
+
+# Install cargo-leptos
+RUN cargo binstall cargo-leptos -y
+
+# Add the WASM target
+RUN rustup target add wasm32-unknown-unknown
+
+# Make an /app dir, which everything will eventually live in
+RUN mkdir -p /app
+WORKDIR /app
+COPY ./app .
+
+# Build the app
+RUN cargo leptos build --release -vv
+
+FROM debian:bookworm-slim AS runtime
+WORKDIR /app
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
+# Copy the server binary to the /app directory
+COPY --from=builder ./app/target/release/app /app/
+
+# /target/site contains our JS/WASM/CSS, etc.
+COPY --from=builder ./app/target/site /app/site
+
+# Copy Cargo.toml if it’s needed at runtime
+COPY --from=builder ./app/Cargo.toml /app/
+
+# Set any required env variables and
+ENV RUST_LOG="info"
+ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+ENV LEPTOS_SITE_ROOT="site"
+EXPOSE 8080
+
+# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
+# Run the server
+CMD ["/app/app"]
+```
+
+```sh
+make new-app
+docker compose up
+docker build -f Dockerfile.prod -t rust-app-prod .
+```
+
+
+
 
 
 ```sh

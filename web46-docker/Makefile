@@ -19,8 +19,13 @@ clean:
 	docker container prune
 	docker-compose up -d --remove-orphans
 	# docker image ls
-	# docker image rm rustapp01
-	# docker image rm web40-docker-server
-	# docker image rm web40-docker-app-dev
 	# docker image rm rust-app-watch
+	
+create-bookstore-app db-01:	
+	cargo new bookstore	
+
+db-02:	
+	cd bookstore && cargo add tokio --features=full
+	cd bookstore && cargo add sqlx --features=postgres,runtime-tokio-rustls
+	cd bookstore && cargo check
 	

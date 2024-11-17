@@ -28,7 +28,6 @@ services:
       POSTGRES_DB: demo
     ports:
       - 5432:5432
-    #user: postgres
     healthcheck:
       test: ["CMD", "pg_isready -U postgres -d demo"]
       interval: 10s

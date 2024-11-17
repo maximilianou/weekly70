@@ -1,7 +1,7 @@
 new-app:
 	cargo leptos new -g leptos-rs/start-axum -n app 
-	curl -o Dockerfile https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web40-docker/Dockerfile
-	curl -o Dockerfile.prod https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web40-docker/Dockerfile.prod
+	curl -o Dockerfile https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/Dockerfile
+	curl -o Dockerfile.prod https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/Dockerfile.prod
 	curl -o compose.yml https://raw.githubusercontent.com/maximilianou/weekly70/refs/heads/main/web44-docker/compose.yml
 
 dev-app:

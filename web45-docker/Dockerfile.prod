@@ -14,10 +14,7 @@ RUN cargo binstall cargo-leptos -y
 RUN rustup target add wasm32-unknown-unknown
 
 # Make an /app dir, which everything will eventually live in
-RUN groupadd -g 1000 appgroup && \
-    useradd -m -u 1000 -g appgroup appuser 
-RUN mkdir -p /app && chown appuser:appgroup /app
-# USER appuser
+RUN mkdir -p /app
 WORKDIR /app
 COPY ./app .
 
@@ -25,14 +22,13 @@ COPY ./app .
 RUN cargo leptos build --release -vv
 
 FROM debian:bookworm-slim AS runtime
+WORKDIR /app
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
-USER appuser
-WORKDIR /app
-  
+
 # -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Copy the server binary to the /app directory
 COPY --from=builder ./app/target/release/app /app/
@@ -49,6 +45,7 @@ ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
 ENV LEPTOS_SITE_ROOT="site"
 EXPOSE 8080
 
+# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Run the server
 CMD ["/app/app"]
 

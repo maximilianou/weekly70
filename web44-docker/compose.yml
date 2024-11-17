@@ -1,0 +1,42 @@
+services:
+  server:
+    build:
+      context: .
+      target: development
+    user: appuser
+    ports:
+      - 8080:8080
+#    environment:
+#      - PG_DBNAME=${POSTGRES_DB}
+#      - PG_HOST=postgres
+#      - PG_USER=${POSTGRES_USER}
+#      - PG_PASSWORD=${POSTGRES_PW}
+#      - ADDRESS=0.0.0.0:8000
+#      - RUST_LOG=debug
+    volumes:
+      - ./app:/app      
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports:
+      - 5432:5432
+    #user: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready -U postgres -d demo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    ports:
+      - 3333:8080
+

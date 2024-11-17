@@ -28,4 +28,7 @@ db-02:
 	cd bookstore && cargo add tokio --features=full
 	cd bookstore && cargo add sqlx --features=postgres,runtime-tokio-rustls
 	cd bookstore && cargo check
+
+db-03:	
+	cd bookstore && cargo run
 	

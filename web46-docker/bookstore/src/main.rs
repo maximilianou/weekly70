@@ -62,8 +62,7 @@ async fn read2(conn: &sqlx::PgPool) -> Result<Book, Box<dyn Error>> {
     Ok(book.unwrap())
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn first_steps() -> Result<(), Box<dyn Error>>{
     let url = "postgres://demo:demo@localhost:5432/demo";
     let pool = sqlx::postgres::PgPool::connect(url).await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
@@ -100,4 +99,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("book 2: {}", &book_read2.title);
 
     Ok(())
+
 }
+
+async fn second_steps() -> Result<(), Box<dyn Error>>{
+
+    
+  Ok( () )
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {    
+    Ok( first_steps().await? )
+}
+
+

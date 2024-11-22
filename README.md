@@ -3357,9 +3357,8 @@ async fn insert_book(
     txn.commit().await?;
     Ok(())
 }
-async fn second_steps() -> Result<(), Box<dyn Error>>{
-    
-  Ok( () )
+async fn second_steps() -> Result<(), Box<dyn Error>>{    ;
+  Ok( insert_book().await? )
 }
 
 #[tokio::main]
@@ -3374,6 +3373,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 ```sh
 [TODO] db
+
+[TODO] db migrations
+    let url = "postgres://demo:demo@localhost:5432/demo";
+    let pool = sqlx::postgres::PgPool::connect(url).await?;
+    sqlx::migrate!("./migrations").run(&pool).await?;
+
+[TODO] db - Transaction ( documentation, samples )
+      let mut txn = conn.begin().await?;
+          ...execute(&mut txn)
+      txn.commit().await?;
+
+[TODO] db Subscription
+
+[TODO] rust struct Default
+
 ```
 
 
